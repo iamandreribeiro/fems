@@ -1,0 +1,16 @@
+{
+  "id": "FAZ-002",
+  "nome": "Fazenda São Pedro",
+  "tamanho_ha": 320,
+  "tipo": "Média",
+  "tem_escritorio": true,
+  "tem_cozinha": true,
+  "tem_quarto": true,
+  "tem_irrigacao": true,
+  "id_solar": "SOL-MED",
+  "id_eolica": "EOL-MED",
+  "id_bateria": "BAT-001",
+  "tarifa": "AZUL_HOROSSAZONAL",
+  "seed": 20250101,
+  "ano": 2025
+}

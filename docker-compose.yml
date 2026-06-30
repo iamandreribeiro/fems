@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fems-postgres
+    environment:
+      POSTGRES_USER: fems
+      POSTGRES_PASSWORD: fems
+      POSTGRES_DB: fems
+    ports:
+      # Host port 5433 (5432 conflicts with native Postgres on this machine)
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - fems-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fems -d fems"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  fems-postgres-data:

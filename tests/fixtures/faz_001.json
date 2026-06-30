@@ -1,0 +1,16 @@
+{
+  "id": "FAZ-001",
+  "nome": "Fazenda Boa Vista",
+  "tamanho_ha": 80,
+  "tipo": "Pequena",
+  "tem_escritorio": true,
+  "tem_cozinha": true,
+  "tem_quarto": true,
+  "tem_irrigacao": true,
+  "id_solar": "SOL-PEQ",
+  "id_eolica": "EOL-PEQ",
+  "id_bateria": "BAT-001",
+  "tarifa": "AZUL_HOROSSAZONAL",
+  "seed": 20250101,
+  "ano": 2025
+}
