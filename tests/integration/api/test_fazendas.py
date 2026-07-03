@@ -104,3 +104,26 @@ async def test_simulacao_retorna_8760_linhas(client: AsyncClient) -> None:
 async def test_get_inexistente_404(client: AsyncClient) -> None:
     r = await client.get("/v1/fazendas/NAO-EXISTE")
     assert r.status_code == 404
+
+
+async def test_override_persiste_e_afeta_cargas(client: AsyncClient) -> None:
+    base = (await client.post("/v1/fazendas", json=PAYLOAD)).json()
+    custom_payload = {
+        **PAYLOAD,
+        "id": "FAZ-CUSTOM",
+        "overrides": [{"equipamento_id": "ESC-04", "qtd": 4, "potencia_kw": 2.5}],
+    }
+    custom = (await client.post("/v1/fazendas", json=custom_payload)).json()
+    assert len(custom["overrides"]) == 1
+    base_esc = next(c for c in base["cargas"] if c["carga"] == "Escritório")
+    cust_esc = next(c for c in custom["cargas"] if c["carga"] == "Escritório")
+    assert float(cust_esc["cons_max_kw"]) > float(base_esc["cons_max_kw"])
+
+
+async def test_ranking_endpoint_por_area(client: AsyncClient) -> None:
+    await client.post("/v1/fazendas", json=PAYLOAD)
+    r = await client.get("/v1/fazendas/FAZ-001/ranking-equipamentos")
+    assert r.status_code == 200
+    por_area = r.json()["por_area"]
+    assert {"escritorio", "cozinha", "quarto", "irrigacao"} <= set(por_area)
+    assert por_area["escritorio"][0]["equipamento_id"] == "ESC-04"

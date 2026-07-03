@@ -21,6 +21,7 @@ def test_equipamento_valido():
         potencia_kw=Decimal("0.1"),
         qtd_peq=Decimal("6"),
         qtd_med=Decimal("10"),
+        qtd_grande=Decimal("20"),
         perfil_horario=PERFIL_OK,
     )
     assert e.area is Area.ESCRITORIO
@@ -35,6 +36,7 @@ def test_equipamento_perfil_tamanho_errado():
             potencia_kw=Decimal("1"),
             qtd_peq=Decimal("1"),
             qtd_med=Decimal("1"),
+            qtd_grande=Decimal("1"),
             perfil_horario=[0.0] * 23,
         )
 
@@ -48,6 +50,7 @@ def test_equipamento_perfil_fora_de_faixa():
             potencia_kw=Decimal("1"),
             qtd_peq=Decimal("1"),
             qtd_med=Decimal("1"),
+            qtd_grande=Decimal("1"),
             perfil_horario=[1.5] + [0.0] * 23,
         )
 

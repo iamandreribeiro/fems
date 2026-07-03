@@ -10,6 +10,7 @@ from fems.domain.instance.instanciar import (
     instanciar_cargas,
 )
 from fems.domain.instance.perfil_area import LOAD_DEFS, perfil_area_24h
+from fems.domain.instance.resolver import resolver_equipamentos
 from fems.domain.simulation.types import FazendaSpec
 
 
@@ -41,13 +42,15 @@ def _load(carga):
 
 
 def test_perfil_area_escritorio_pequena():
-    perfil = perfil_area_24h(EQUIPAMENTOS, _load("Escritório"), Porte.PEQUENA)
+    resolvidos = resolver_equipamentos(EQUIPAMENTOS, Porte.PEQUENA)
+    perfil = perfil_area_24h(resolvidos, _load("Escritório"))
     assert perfil[0] == pytest.approx(0.02)
     assert perfil[9] == pytest.approx(2.02)  # pico diurno
 
 
 def test_perfil_area_cozinha_pico_vs_h11():
-    perfil = perfil_area_24h(EQUIPAMENTOS, _load("Cozinha"), Porte.PEQUENA)
+    resolvidos = resolver_equipamentos(EQUIPAMENTOS, Porte.PEQUENA)
+    perfil = perfil_area_24h(resolvidos, _load("Cozinha"))
     assert perfil[6] == pytest.approx(1.714)  # pico real às 06h
     assert perfil[11] == pytest.approx(0.354)  # mas Cons_Max usa a hora 11
 
