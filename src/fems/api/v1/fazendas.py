@@ -2,7 +2,12 @@ from fastapi import APIRouter, HTTPException, status
 
 from fems.api.deps import SessionDep
 from fems.domain.instance.fazenda import FazendaCreate, FazendaRead
-from fems.domain.instance.resultado import FaturaHoraOut, ResumoMesOut
+from fems.domain.instance.resultado import (
+    FaturaHoraOut,
+    RankingItemOut,
+    RankingOut,
+    ResumoMesOut,
+)
 from fems.services.fazenda_service import CatalogoIncompletoError, FazendaService
 
 router = APIRouter(prefix="/fazendas", tags=["fazendas"])
@@ -43,6 +48,18 @@ async def resumo_fazenda(id_: str, session: SessionDep) -> list[ResumoMesOut]:
     if resumo is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Fazenda not found")
     return [ResumoMesOut.model_validate(r) for r in resumo]
+
+
+@router.get("/{id_}/ranking-equipamentos", response_model=RankingOut)
+async def ranking_equipamentos(id_: str, session: SessionDep) -> RankingOut:
+    ranking = await FazendaService(session).ranking(id_)
+    if ranking is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Fazenda not found")
+    por_area = {
+        area.value: [RankingItemOut.model_validate(item) for item in itens]
+        for area, itens in ranking.items()
+    }
+    return RankingOut(por_area=por_area)
 
 
 @router.delete("/{id_}", status_code=status.HTTP_204_NO_CONTENT)

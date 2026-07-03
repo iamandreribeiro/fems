@@ -10,13 +10,18 @@ from __future__ import annotations
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fems.data.clima import carregar_clima
+from fems.domain.configuration.enums import Area
 from fems.domain.instance.fazenda import FazendaCreate, FazendaRead
 from fems.domain.instance.instanciar import instanciar_cargas
+from fems.domain.instance.ranking import ranking_por_area
+from fems.domain.instance.resolver import resolver_equipamentos
 from fems.domain.simulation.engine import simular_fazenda
 from fems.domain.simulation.types import (
     Equipamento,
     FaturaHora,
     Gerador,
+    OverrideSpec,
+    RankingItem,
     ResumoMes,
     TarifaHora,
 )
@@ -30,6 +35,9 @@ from fems.services.sim_mapping import (
     equipamento_from_orm,
     fazenda_spec_from_orm,
     gerador_from_orm,
+    override_orm_from_create,
+    override_spec_from_create,
+    override_spec_from_orm,
     tarifa_hora_from_orm,
 )
 
@@ -63,11 +71,13 @@ class FazendaService:
 
     async def create(self, data: FazendaCreate) -> FazendaRead:
         equipamentos = await self._equipamentos()
-        orm = FazendaORM(**data.model_dump())
+        orm = FazendaORM(**data.model_dump(exclude={"overrides"}))
         spec = fazenda_spec_from_orm(orm)
-        cargas = instanciar_cargas(spec, equipamentos)
+        override_specs = [override_spec_from_create(o) for o in data.overrides]
+        cargas = instanciar_cargas(spec, equipamentos, override_specs)
         carga_orms = [carga_orm_from_instanciada(orm.id, c) for c in cargas]
-        await self.repo.create(orm, carga_orms)
+        override_orms = [override_orm_from_create(orm.id, o) for o in data.overrides]
+        await self.repo.create(orm, carga_orms, override_orms)
         return FazendaRead.model_validate(orm)
 
     async def get_by_id(self, id_: str) -> FazendaRead | None:
@@ -85,11 +95,12 @@ class FazendaService:
         if orm is None:
             return None
         spec = fazenda_spec_from_orm(orm)
+        overrides: list[OverrideSpec] = [override_spec_from_orm(o) for o in orm.overrides]
         equipamentos = await self._equipamentos()
         geradores = await self._geradores()
         tarifa = await self._tarifa(spec.tarifa)
         clima = carregar_clima(spec.ano)
-        result = simular_fazenda(spec, equipamentos, geradores, tarifa, clima)
+        result = simular_fazenda(spec, equipamentos, geradores, tarifa, clima, overrides)
         return result.fatura, result.resumo
 
     async def simulacao(self, id_: str) -> list[FaturaHora] | None:
@@ -99,3 +110,14 @@ class FazendaService:
     async def resumo(self, id_: str) -> list[ResumoMes] | None:
         out = await self._simular(id_)
         return out[1] if out else None
+
+    async def ranking(self, id_: str) -> dict[Area, list[RankingItem]] | None:
+        orm = await self.repo.get_by_id(id_)
+        if orm is None:
+            return None
+        spec = fazenda_spec_from_orm(orm)
+        overrides = [override_spec_from_orm(o) for o in orm.overrides]
+        equipamentos = await self._equipamentos()
+        tarifa = await self._tarifa(spec.tarifa)
+        resolvidos = resolver_equipamentos(equipamentos, spec.porte, overrides)
+        return ranking_por_area(resolvidos, tarifa)

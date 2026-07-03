@@ -29,7 +29,7 @@ from fems.data.catalog_seed import EQUIPAMENTOS, GERADORES, TARIFA_AZUL
 from fems.data.clima import carregar_clima
 from fems.domain.configuration.enums import Porte
 from fems.domain.simulation.engine import simular_fazenda
-from fems.domain.simulation.types import FazendaSpec
+from fems.domain.simulation.types import FazendaSpec, OverrideSpec
 
 
 def _spec_from_config(cfg: dict[str, object], ano_cli: int | None) -> FazendaSpec:
@@ -53,6 +53,22 @@ def _spec_from_config(cfg: dict[str, object], ano_cli: int | None) -> FazendaSpe
     )
 
 
+def _overrides_from_config(cfg: dict[str, object]) -> list[OverrideSpec]:
+    raw = cfg.get("overrides") or []
+    specs: list[OverrideSpec] = []
+    for o in raw:  # type: ignore[union-attr]
+        perfil = o.get("perfil_horario")
+        specs.append(
+            OverrideSpec(
+                equipamento_id=str(o["equipamento_id"]),
+                qtd=o.get("qtd"),
+                potencia_kw=o.get("potencia_kw"),
+                perfil=tuple(float(x) for x in perfil) if perfil else None,
+            )
+        )
+    return specs
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Gera o dataset energético de uma fazenda.")
     parser.add_argument("--config", required=True, type=Path, help="JSON de cadastro da fazenda")
@@ -62,27 +78,34 @@ def main() -> None:
 
     cfg = json.loads(args.config.read_text(encoding="utf-8"))
     spec = _spec_from_config(cfg, args.year)
+    overrides = _overrides_from_config(cfg)
     geradores = {g.id: g for g in GERADORES}
     clima = carregar_clima(spec.ano)
 
-    result = simular_fazenda(spec, EQUIPAMENTOS, geradores, TARIFA_AZUL, clima)
+    result = simular_fazenda(spec, EQUIPAMENTOS, geradores, TARIFA_AZUL, clima, overrides)
 
     args.output.mkdir(parents=True, exist_ok=True)
     fatura_df = pd.DataFrame([dataclasses.asdict(f) for f in result.fatura])
     resumo_df = pd.DataFrame([dataclasses.asdict(r) for r in result.resumo])
     cargas_df = pd.DataFrame([dataclasses.asdict(c) for c in result.cargas])
+    ranking_df = pd.DataFrame(
+        [dataclasses.asdict(item) for itens in result.ranking.values() for item in itens]
+    )
 
     fatura_path = args.output / "consumo_fatura.parquet"
     resumo_path = args.output / "resumo_mensal.parquet"
     cargas_path = args.output / "cadastro_cargas.parquet"
+    ranking_path = args.output / "ranking_equipamentos.parquet"
     fatura_df.to_parquet(fatura_path, index=False)
     resumo_df.to_parquet(resumo_path, index=False)
     cargas_df.to_parquet(cargas_path, index=False)
+    ranking_df.to_parquet(ranking_path, index=False)
 
     print(f"[{spec.id}] {spec.nome} — ano {spec.ano}, seed {spec.seed}")
     print(f"  {fatura_path}  ({len(fatura_df)} linhas)")
     print(f"  {resumo_path}  ({len(resumo_df)} meses)")
     print(f"  {cargas_path}  ({len(cargas_df)} cargas)")
+    print(f"  {ranking_path}  ({len(ranking_df)} equipamentos)")
     consumo = float(fatura_df["consumo_kwh"].sum())
     geracao = float(fatura_df["geracao_kwh"].sum())
     custo = float(fatura_df["custo_rs"].sum())

@@ -8,7 +8,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from fems.domain.configuration.enums import TipoHorario
+from fems.domain.configuration.enums import Area, TipoHorario
 
 
 class FaturaHoraOut(BaseModel):
@@ -41,3 +41,20 @@ class ResumoMesOut(BaseModel):
     custo_fora_ponta_rs: float
     bateria_descarga_kwh: float
     saldo_liquido_kwh: float
+
+
+class RankingItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    area: Area
+    equipamento_id: str
+    equipamento: str
+    kwh_ano: float
+    pct_area: float
+    custo_ano: float
+
+
+class RankingOut(BaseModel):
+    """Ranking de equipamentos agrupado por área (chaves = valor da área)."""
+
+    por_area: dict[str, list[RankingItemOut]]

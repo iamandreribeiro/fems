@@ -34,6 +34,7 @@ async def seed_catalogo(session: AsyncSession) -> None:
                 potencia_kw=_d(e.potencia_kw),
                 qtd_peq=_d(e.qtd_peq),
                 qtd_med=_d(e.qtd_med),
+                qtd_grande=_d(e.qtd_grande),
                 perfil_horario=list(e.perfil),
             )
         )

@@ -8,11 +8,13 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from fems.domain.instance.override import OverrideEquipamentoCreate
 from fems.domain.simulation.types import (
     CargaInstanciada,
     Equipamento,
     FazendaSpec,
     Gerador,
+    OverrideSpec,
     TarifaHora,
 )
 from fems.repositories.models import (
@@ -20,6 +22,7 @@ from fems.repositories.models import (
     EquipamentoORM,
     FazendaCargaORM,
     FazendaORM,
+    FazendaOverrideORM,
     TarifaHoraORM,
 )
 
@@ -32,6 +35,7 @@ def equipamento_from_orm(o: EquipamentoORM) -> Equipamento:
         potencia_kw=float(o.potencia_kw),
         qtd_peq=float(o.qtd_peq),
         qtd_med=float(o.qtd_med),
+        qtd_grande=float(o.qtd_grande),
         perfil=tuple(float(x) for x in o.perfil_horario),
     )
 
@@ -68,6 +72,38 @@ def fazenda_spec_from_orm(o: FazendaORM) -> FazendaSpec:
         tarifa=o.tarifa,
         seed=o.seed,
         ano=o.ano,
+    )
+
+
+def _perfil_tuple(v: list[float] | None) -> tuple[float, ...] | None:
+    return None if v is None else tuple(float(x) for x in v)
+
+
+def override_spec_from_orm(o: FazendaOverrideORM) -> OverrideSpec:
+    return OverrideSpec(
+        equipamento_id=o.equipamento_id,
+        qtd=None if o.qtd is None else float(o.qtd),
+        potencia_kw=None if o.potencia_kw is None else float(o.potencia_kw),
+        perfil=_perfil_tuple(o.perfil_horario),
+    )
+
+
+def override_spec_from_create(ov: OverrideEquipamentoCreate) -> OverrideSpec:
+    return OverrideSpec(
+        equipamento_id=ov.equipamento_id,
+        qtd=None if ov.qtd is None else float(ov.qtd),
+        potencia_kw=None if ov.potencia_kw is None else float(ov.potencia_kw),
+        perfil=_perfil_tuple(ov.perfil_horario),
+    )
+
+
+def override_orm_from_create(fazenda_id: str, ov: OverrideEquipamentoCreate) -> FazendaOverrideORM:
+    return FazendaOverrideORM(
+        fazenda_id=fazenda_id,
+        equipamento_id=ov.equipamento_id,
+        qtd=ov.qtd,
+        potencia_kw=ov.potencia_kw,
+        perfil_horario=ov.perfil_horario,
     )
 
 

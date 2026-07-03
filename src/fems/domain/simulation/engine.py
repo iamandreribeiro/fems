@@ -11,6 +11,8 @@ from collections.abc import Mapping, Sequence
 from fems.domain.configuration.enums import TipoCarga
 from fems.domain.instance.instanciar import cargas_from_perfis
 from fems.domain.instance.perfil_area import perfis_por_carga
+from fems.domain.instance.ranking import ranking_por_area
+from fems.domain.instance.resolver import resolver_equipamentos
 from fems.domain.simulation.bateria import descarga_bateria
 from fems.domain.simulation.consumo import consumo_serie
 from fems.domain.simulation.custo import linha_fatura
@@ -22,6 +24,7 @@ from fems.domain.simulation.types import (
     FaturaHora,
     FazendaSpec,
     Gerador,
+    OverrideSpec,
     SimResult,
     TarifaHora,
 )
@@ -49,11 +52,15 @@ def simular_fazenda(
     geradores: Mapping[str, Gerador],
     tarifa: Sequence[TarifaHora],
     clima: Sequence[ClimaHora],
+    overrides: Sequence[OverrideSpec] = (),
 ) -> SimResult:
     n = len(clima)
 
+    # 0. Resolve o catálogo para a fazenda (porte + overrides do cadastro personalizado).
+    resolvidos = resolver_equipamentos(equipamentos, fazenda.porte, overrides)
+
     # 1. Cargas instanciadas (+ bateria), reusando os perfis para o consumo.
-    perfis = perfis_por_carga(equipamentos, fazenda.porte)
+    perfis = perfis_por_carga(resolvidos)
     cargas = cargas_from_perfis(fazenda, perfis)
 
     # 2. Geração horária.
@@ -81,4 +88,10 @@ def simular_fazenda(
     # 6. Resumo mensal.
     resumo = resumo_mensal(fazenda.id, fatura)
 
-    return SimResult(fazenda_id=fazenda.id, cargas=cargas, fatura=fatura, resumo=resumo)
+    # 7. Ranking de equipamentos por área (footprint nominal * dias do ano).
+    dias = max(1, n // 24)
+    ranking = ranking_por_area(resolvidos, tarifa, dias)
+
+    return SimResult(
+        fazenda_id=fazenda.id, cargas=cargas, fatura=fatura, resumo=resumo, ranking=ranking
+    )

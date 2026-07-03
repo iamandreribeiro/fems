@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import math
 from pathlib import Path
 from typing import Any
 
@@ -37,6 +38,19 @@ AREA_ENUM = {
 }
 TIPO_GER_ENUM = {"Solar FV": "TipoGeracao.SOLAR_FV", "Eólica": "TipoGeracao.EOLICA"}
 TIPO_HOR_ENUM = {"Ponta": "TipoHorario.PONTA", "Fora Ponta": "TipoHorario.FORA_PONTA"}
+
+# --- Porte Grande (NÃO está na planilha v8) — valores PROPOSTOS, ajuste à vontade ---
+# qtd_grande é derivada da Média por um fator; os geradores GRD são acréscimos.
+FATOR_GRANDE = 2.0
+GERADORES_GRANDE = [
+    # (id, tipo_enum, pot_nominal_kwp, eficiencia_pct, ref_conversao, gen_max_kw, gen_min_kw)
+    ("SOL-GRD", "TipoGeracao.SOLAR_FV", 100.0, 88.0, 1100.0, 100.0, 8.0),
+    ("EOL-GRD", "TipoGeracao.EOLICA", 30.0, 88.0, 10.0, 30.0, 1.0),
+]
+
+
+def _qtd_grande(qtd_med: float) -> float:
+    return float(math.floor(qtd_med * FATOR_GRANDE + 0.5))
 
 
 def _grid(wb: Any, name: str) -> list[list[Any]]:
@@ -95,6 +109,7 @@ def generate_catalog_seed(wb: Any) -> None:
         lines.append(f"        potencia_kw={_fmt(r[3])},")
         lines.append(f"        qtd_peq={_fmt(r[4])},")
         lines.append(f"        qtd_med={_fmt(r[5])},")
+        lines.append(f"        qtd_grande={_fmt(_qtd_grande(float(r[5])))},")
         lines.append(f"        perfil=({perfil_str}),")
         lines.append("    ),")
     lines.append("]")
@@ -109,6 +124,16 @@ def generate_catalog_seed(wb: Any) -> None:
         lines.append(f"        ref_conversao={_fmt(r[4])},")
         lines.append(f"        gen_max_kw={_fmt(r[5])},")
         lines.append(f"        gen_min_kw={_fmt(r[6])},")
+        lines.append("    ),")
+    for gid, gtipo, kwp, efic, ref, gmax, gmin in GERADORES_GRANDE:
+        lines.append("    Gerador(  # PROPOSTO (porte Grande, fora da planilha v8)")
+        lines.append(f"        id={gid!r},")
+        lines.append(f"        tipo={gtipo},")
+        lines.append(f"        pot_nominal_kwp={_fmt(kwp)},")
+        lines.append(f"        eficiencia_pct={_fmt(efic)},")
+        lines.append(f"        ref_conversao={_fmt(ref)},")
+        lines.append(f"        gen_max_kw={_fmt(gmax)},")
+        lines.append(f"        gen_min_kw={_fmt(gmin)},")
         lines.append("    ),")
     lines.append("]")
     lines.append("")

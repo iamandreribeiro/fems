@@ -18,10 +18,11 @@ class TipoGeracao(StrEnum):
 
 
 class Porte(StrEnum):
-    """Porte da fazenda — seleciona Qtd_Peq vs Qtd_Med na instanciação."""
+    """Porte da fazenda — seleciona Qtd_Peq / Qtd_Med / Qtd_Grande na instanciação."""
 
     PEQUENA = "Pequena"
     MEDIA = "Média"
+    GRANDE = "Grande"
 
 
 class TipoCarga(StrEnum):

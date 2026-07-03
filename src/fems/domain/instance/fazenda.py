@@ -10,6 +10,7 @@ from decimal import Decimal
 from pydantic import BaseModel, ConfigDict, Field
 
 from fems.domain.configuration.enums import Porte, StatusCarga, TipoCarga
+from fems.domain.instance.override import OverrideEquipamento, OverrideEquipamentoCreate
 
 TARIFA_PADRAO = "AZUL_HOROSSAZONAL"
 
@@ -32,7 +33,7 @@ class FazendaBase(BaseModel):
 
 
 class FazendaCreate(FazendaBase):
-    pass
+    overrides: list[OverrideEquipamentoCreate] = Field(default_factory=list)
 
 
 class FazendaCargaRead(BaseModel):
@@ -51,3 +52,4 @@ class FazendaRead(FazendaBase):
     created_at: datetime
     updated_at: datetime
     cargas: list[FazendaCargaRead] = Field(default_factory=list)
+    overrides: list[OverrideEquipamento] = Field(default_factory=list)

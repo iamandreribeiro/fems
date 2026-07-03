@@ -32,7 +32,35 @@ class Equipamento:
     potencia_kw: float
     qtd_peq: float
     qtd_med: float
+    qtd_grande: float
     perfil: tuple[float, ...]  # 24 fatores 0..1
+
+
+@dataclass(frozen=True, slots=True)
+class EquipamentoResolvido:
+    """Equipamento efetivo de uma fazenda após resolver porte + overrides.
+
+    `qtd` já é único (coluna do porte, possivelmente sobrescrita); `potencia_kw` e
+    `perfil` também podem vir de override. Tudo a jusante (Perfil_Area, ranking) opera
+    sobre esta lista.
+    """
+
+    id: str
+    area: Area
+    equipamento: str
+    potencia_kw: float
+    qtd: float
+    perfil: tuple[float, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class OverrideSpec:
+    """Override parcial de um equipamento numa fazenda. Campos None = mantém o catálogo."""
+
+    equipamento_id: str
+    qtd: float | None = None
+    potencia_kw: float | None = None
+    perfil: tuple[float, ...] | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -137,6 +165,18 @@ class ResumoMes:
 
 
 @dataclass(frozen=True, slots=True)
+class RankingItem:
+    """Footprint energético anual de um equipamento (para o ranking por área)."""
+
+    area: Area
+    equipamento_id: str
+    equipamento: str
+    kwh_ano: float
+    pct_area: float
+    custo_ano: float
+
+
+@dataclass(frozen=True, slots=True)
 class SimResult:
     """Resultado completo de uma simulação."""
 
@@ -144,3 +184,4 @@ class SimResult:
     cargas: list[CargaInstanciada]
     fatura: list[FaturaHora]
     resumo: list[ResumoMes]
+    ranking: dict[Area, list[RankingItem]]

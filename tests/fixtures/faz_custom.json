@@ -1,0 +1,20 @@
+{
+  "id": "FAZ-CUSTOM",
+  "nome": "Fazenda Personalizada",
+  "tamanho_ha": 320,
+  "tipo": "Média",
+  "tem_escritorio": true,
+  "tem_cozinha": true,
+  "tem_quarto": true,
+  "tem_irrigacao": true,
+  "id_solar": "SOL-MED",
+  "id_eolica": "EOL-MED",
+  "id_bateria": "BAT-001",
+  "tarifa": "AZUL_HOROSSAZONAL",
+  "seed": 20250101,
+  "ano": 2025,
+  "overrides": [
+    { "equipamento_id": "ESC-04", "qtd": 4, "potencia_kw": 2.5 },
+    { "equipamento_id": "COZ-03", "qtd": 2 }
+  ]
+}

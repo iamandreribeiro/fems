@@ -11,7 +11,8 @@ from collections.abc import Sequence
 
 from fems.domain.configuration.enums import StatusCarga, TipoCarga
 from fems.domain.instance.perfil_area import LoadDef, perfis_por_carga
-from fems.domain.simulation.types import CargaInstanciada, Equipamento, FazendaSpec
+from fems.domain.instance.resolver import resolver_equipamentos
+from fems.domain.simulation.types import CargaInstanciada, Equipamento, FazendaSpec, OverrideSpec
 
 # Quirk fiel à planilha: o Cons_Max é o MAX de APENAS três colunas do Perfil_Area —
 # 00h, 01h e 11h (células C, D e N da fórmula `=MAX(SUMPRODUCT(...C...), (...D...),
@@ -66,8 +67,11 @@ def cargas_from_perfis(
 
 
 def instanciar_cargas(
-    fazenda: FazendaSpec, equipamentos: Sequence[Equipamento]
+    fazenda: FazendaSpec,
+    equipamentos: Sequence[Equipamento],
+    overrides: Sequence[OverrideSpec] = (),
 ) -> list[CargaInstanciada]:
-    """Atalho: computa os perfis e deriva as cargas (inclui a bateria)."""
-    perfis = perfis_por_carga(equipamentos, fazenda.porte)
+    """Atalho: resolve (porte + overrides), computa os perfis e deriva as cargas (+ bateria)."""
+    resolvidos = resolver_equipamentos(equipamentos, fazenda.porte, overrides)
+    perfis = perfis_por_carga(resolvidos)
     return cargas_from_perfis(fazenda, perfis)

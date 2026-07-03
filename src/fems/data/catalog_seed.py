@@ -16,6 +16,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.1,
         qtd_peq=6.0,
         qtd_med=10.0,
+        qtd_grande=20.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -25,6 +26,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.15,
         qtd_peq=2.0,
         qtd_med=4.0,
+        qtd_grande=8.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -34,6 +36,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.3,
         qtd_peq=1.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -43,6 +46,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=1.2,
         qtd_peq=1.0,
         qtd_med=2.0,
+        qtd_grande=4.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -52,6 +56,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.02,
         qtd_peq=1.0,
         qtd_med=2.0,
+        qtd_grande=4.0,
         perfil=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
     ),
     Equipamento(
@@ -61,6 +66,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.05,
         qtd_peq=2.0,
         qtd_med=3.0,
+        qtd_grande=6.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -70,6 +76,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.15,
         qtd_peq=1.0,
         qtd_med=2.0,
+        qtd_grande=4.0,
         perfil=(0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4, 0.4),
     ),
     Equipamento(
@@ -79,6 +86,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.2,
         qtd_peq=1.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35, 0.35),
     ),
     Equipamento(
@@ -88,6 +96,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=1.2,
         qtd_peq=1.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.5, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, 0.0, 0.0, 0.0, 0.5, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -97,6 +106,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.8,
         qtd_peq=1.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.8, 0.8, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.4, 0.4, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0),
     ),
     Equipamento(
@@ -106,6 +116,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.1,
         qtd_peq=4.0,
         qtd_med=6.0,
+        qtd_grande=12.0,
         perfil=(0.3, 0.3, 0.3, 0.3, 0.3, 0.5, 0.8, 0.6, 0.4, 0.3, 0.3, 0.5, 0.8, 0.5, 0.3, 0.3, 0.3, 0.5, 0.8, 0.6, 0.4, 0.3, 0.3, 0.3),
     ),
     Equipamento(
@@ -115,6 +126,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.08,
         qtd_peq=1.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3, 0.3),
     ),
     Equipamento(
@@ -124,6 +136,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.1,
         qtd_peq=4.0,
         qtd_med=6.0,
+        qtd_grande=12.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 0.8, 0.3),
     ),
     Equipamento(
@@ -133,6 +146,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.08,
         qtd_peq=2.0,
         qtd_med=4.0,
+        qtd_grande=8.0,
         perfil=(0.8, 0.8, 0.8, 0.8, 0.8, 0.6, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.7, 0.9, 1.0, 0.9),
     ),
     Equipamento(
@@ -142,6 +156,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.1,
         qtd_peq=1.0,
         qtd_med=2.0,
+        qtd_grande=4.0,
         perfil=(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 1.0, 1.0, 1.0, 0.8, 0.2),
     ),
     Equipamento(
@@ -151,6 +166,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.02,
         qtd_peq=3.0,
         qtd_med=5.0,
+        qtd_grande=10.0,
         perfil=(0.8, 0.8, 0.8, 0.8, 0.5, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.3, 0.5, 0.8, 0.9),
     ),
     Equipamento(
@@ -160,6 +176,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=4.0,
         qtd_peq=1.0,
         qtd_med=2.0,
+        qtd_grande=4.0,
         perfil=(1.0, 1.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 1.0),
     ),
     Equipamento(
@@ -169,6 +186,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=22.0,
         qtd_peq=0.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, 0.0, 0.0, 0.0, 0.0, 0.8, 0.8, 0.0, 0.0),
     ),
     Equipamento(
@@ -178,6 +196,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=2.4,
         qtd_peq=0.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(0.9862555721, 0.9825408618, 0.9583952452, 0.98551263, 0.9531946508, 0.9914561664, 0.9795690936, 0.9632243685, 0.9877414562, 0.9862555721, 0.9784546805, 0.9658246657, 0.9621099554, 0.9907132244, 1.0, 0.9840267459, 0.9832838039, 0.9777117385, 0.9910846954, 0.9892273403, 0.9650817236, 0.9739970282, 0.9929420505, 0.9762258544),
     ),
     Equipamento(
@@ -187,6 +206,7 @@ EQUIPAMENTOS: list[Equipamento] = [
         potencia_kw=0.2,
         qtd_peq=1.0,
         qtd_med=1.0,
+        qtd_grande=2.0,
         perfil=(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0),
     ),
 ]
@@ -227,6 +247,24 @@ GERADORES: list[Gerador] = [
         ref_conversao=10.0,
         gen_max_kw=10.0,
         gen_min_kw=0.3,
+    ),
+    Gerador(  # PROPOSTO (porte Grande, fora da planilha v8)
+        id='SOL-GRD',
+        tipo=TipoGeracao.SOLAR_FV,
+        pot_nominal_kwp=100.0,
+        eficiencia_pct=88.0,
+        ref_conversao=1100.0,
+        gen_max_kw=100.0,
+        gen_min_kw=8.0,
+    ),
+    Gerador(  # PROPOSTO (porte Grande, fora da planilha v8)
+        id='EOL-GRD',
+        tipo=TipoGeracao.EOLICA,
+        pot_nominal_kwp=30.0,
+        eficiencia_pct=88.0,
+        ref_conversao=10.0,
+        gen_max_kw=30.0,
+        gen_min_kw=1.0,
     ),
 ]
 

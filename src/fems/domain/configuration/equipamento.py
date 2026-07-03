@@ -30,6 +30,7 @@ class EquipamentoBase(BaseModel):
     potencia_kw: Decimal = Field(gt=Decimal("0"), max_digits=10, decimal_places=4)
     qtd_peq: Decimal = Field(ge=Decimal("0"), max_digits=6, decimal_places=2)
     qtd_med: Decimal = Field(ge=Decimal("0"), max_digits=6, decimal_places=2)
+    qtd_grande: Decimal = Field(ge=Decimal("0"), max_digits=6, decimal_places=2)
     perfil_horario: list[float] = Field(min_length=HOURS_IN_DAY, max_length=HOURS_IN_DAY)
 
     @field_validator("perfil_horario")
@@ -50,6 +51,9 @@ class EquipamentoUpdate(BaseModel):
     )
     qtd_peq: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=6, decimal_places=2)
     qtd_med: Decimal | None = Field(default=None, ge=Decimal("0"), max_digits=6, decimal_places=2)
+    qtd_grande: Decimal | None = Field(
+        default=None, ge=Decimal("0"), max_digits=6, decimal_places=2
+    )
     perfil_horario: list[float] | None = Field(
         default=None, min_length=HOURS_IN_DAY, max_length=HOURS_IN_DAY
     )

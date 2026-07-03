@@ -10,8 +10,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 from dataclasses import dataclass
 
-from fems.domain.configuration.enums import Area, Porte, TipoCarga
-from fems.domain.simulation.types import HOURS_IN_DAY, Equipamento
+from fems.domain.configuration.enums import Area, TipoCarga
+from fems.domain.simulation.types import HOURS_IN_DAY, EquipamentoResolvido
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,14 +40,10 @@ LOAD_DEFS: tuple[LoadDef, ...] = (
 )
 
 
-def _qtd(e: Equipamento, porte: Porte) -> float:
-    return e.qtd_peq if porte == Porte.PEQUENA else e.qtd_med
-
-
 def perfil_area_24h(
-    equipamentos: Sequence[Equipamento], load: LoadDef, porte: Porte
+    equipamentos: Sequence[EquipamentoResolvido], load: LoadDef
 ) -> tuple[float, ...]:
-    """Potência (kW) por hora para uma carga e porte — 24 valores."""
+    """Potência (kW) por hora para uma carga — 24 valores. `equipamentos` já resolvidos."""
     selecionados = [
         e
         for e in equipamentos
@@ -57,13 +53,13 @@ def perfil_area_24h(
     for h in range(HOURS_IN_DAY):
         total = 0.0
         for e in selecionados:
-            total += e.potencia_kw * _qtd(e, porte) * e.perfil[h]
+            total += e.potencia_kw * e.qtd * e.perfil[h]
         out.append(total)
     return tuple(out)
 
 
 def perfis_por_carga(
-    equipamentos: Sequence[Equipamento], porte: Porte
+    equipamentos: Sequence[EquipamentoResolvido],
 ) -> list[tuple[LoadDef, tuple[float, ...]]]:
-    """Perfil de 24h para cada carga definida, no porte dado."""
-    return [(ld, perfil_area_24h(equipamentos, ld, porte)) for ld in LOAD_DEFS]
+    """Perfil de 24h para cada carga definida."""
+    return [(ld, perfil_area_24h(equipamentos, ld)) for ld in LOAD_DEFS]

@@ -1,0 +1,16 @@
+{
+  "id": "FAZ-003",
+  "nome": "Fazenda Cerrado Grande",
+  "tamanho_ha": 1500,
+  "tipo": "Grande",
+  "tem_escritorio": true,
+  "tem_cozinha": true,
+  "tem_quarto": true,
+  "tem_irrigacao": true,
+  "id_solar": "SOL-GRD",
+  "id_eolica": "EOL-GRD",
+  "id_bateria": "BAT-001",
+  "tarifa": "AZUL_HOROSSAZONAL",
+  "seed": 20250101,
+  "ano": 2025
+}

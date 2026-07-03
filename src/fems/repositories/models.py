@@ -64,6 +64,7 @@ class EquipamentoORM(TimestampMixin, Base):
     potencia_kw: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False)
     qtd_peq: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     qtd_med: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
+    qtd_grande: Mapped[Decimal] = mapped_column(Numeric(6, 2), nullable=False)
     perfil_horario: Mapped[list[float]] = mapped_column(ARRAY(Float), nullable=False)  # 24 fatores
 
 
@@ -144,6 +145,11 @@ class FazendaORM(TimestampMixin, Base):
         cascade="all, delete-orphan",
         lazy="selectin",
     )
+    overrides: Mapped[list["FazendaOverrideORM"]] = relationship(
+        back_populates="fazenda",
+        cascade="all, delete-orphan",
+        lazy="selectin",
+    )
 
 
 class FazendaCargaORM(Base):
@@ -161,3 +167,22 @@ class FazendaCargaORM(Base):
     )
 
     fazenda: Mapped[FazendaORM] = relationship(back_populates="cargas")
+
+
+class FazendaOverrideORM(Base):
+    """Override parcial por equipamento (cadastro personalizado). Campos nulos =
+    mantém o valor do catálogo para o porte da fazenda."""
+
+    __tablename__ = "fazenda_override"
+
+    fazenda_id: Mapped[str] = mapped_column(
+        String(20), ForeignKey("fazenda.id", ondelete="CASCADE"), primary_key=True
+    )
+    equipamento_id: Mapped[str] = mapped_column(
+        String(20), ForeignKey("config_equipamento.id", ondelete="RESTRICT"), primary_key=True
+    )
+    qtd: Mapped[Decimal | None] = mapped_column(Numeric(6, 2), nullable=True)
+    potencia_kw: Mapped[Decimal | None] = mapped_column(Numeric(10, 4), nullable=True)
+    perfil_horario: Mapped[list[float] | None] = mapped_column(ARRAY(Float), nullable=True)
+
+    fazenda: Mapped[FazendaORM] = relationship(back_populates="overrides")
