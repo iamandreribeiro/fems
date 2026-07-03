@@ -99,7 +99,11 @@ Fluxo de desenvolvimento iterativo, camada por camada:
 - **Quirk fiel reproduzido:** `Cons_Max = MAX(perfil[00h], perfil[01h], perfil[11h])`
   — só 3 colunas (C, D, N da fórmula), **não** o pico das 24 h. Mantido por fidelidade
   (princípio 2). Ver `domain/instance/instanciar.py`.
+- **Porte Grande** usa `qtd_grande` + geradores `SOL-GRD`/`EOL-GRD` — valores **propostos**
+  (não vêm da planilha v8), ajustáveis em `scripts/_extract_from_xlsx.py`.
+- **Cadastro personalizado:** override parcial (qtd/potência/perfil) via `overrides` no
+  payload; resolvido antes do `Perfil_Area` em `domain/instance/resolver.py`.
 - Snapshots materializados + ingestão IoT (Fases 4–5) — fronteiras demarcadas, vazias.
-- `uv.lock`: regerar com `uv sync` após a adição de `pyarrow`/`openpyxl`.
+- `uv.lock`: regerar com `uv sync` após a adição de `pyarrow`/`openpyxl`/`matplotlib`.
 - Artigo: verificar transição Enel→Equatorial Goiás, valores de módulo fiscal
   INCRA, e confirmação de DOI de preprints recentes.

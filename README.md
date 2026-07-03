@@ -51,7 +51,15 @@ A API ficará em `http://localhost:8000`. Docs OpenAPI em `http://localhost:8000
 | `GET` | `/v1/fazendas/{id}` | Lê o cadastro persistido (com cargas) |
 | `GET` | `/v1/fazendas/{id}/resumo` | Recomputa e retorna o resumo mensal (12 linhas) |
 | `GET` | `/v1/fazendas/{id}/simulacao` | Recomputa e retorna a série horária (8.760 linhas) |
+| `GET` | `/v1/fazendas/{id}/ranking-equipamentos` | Ranking dos equipamentos que mais gastam, por área |
 | `GET/POST/...` | `/v1/equipamentos`, `/v1/geracoes`, `/v1/tarifas` | CRUD do catálogo (admin) |
+
+**Cadastro personalizado:** o `POST /v1/fazendas` aceita um bloco `overrides` para
+sobrescrever quantidade/potência/perfil de equipamentos específicos (o resto vem do
+catálogo pelo porte). Exemplo em [`tests/fixtures/faz_custom.json`](tests/fixtures/faz_custom.json).
+
+**Portes:** `Pequena`, `Média`, `Grande`. A Grande usa `qtd_grande` no catálogo e os
+geradores `SOL-GRD`/`EOL-GRD` (valores propostos, ajustáveis em `scripts/_extract_from_xlsx.py`).
 
 ## Gerar um dataset (CLI, sem banco)
 
@@ -62,12 +70,25 @@ O mesmo motor de simulação da API, via linha de comando, lendo um JSON de cada
 uv run python scripts/gerar_dataset.py --config tests/fixtures/faz_001.json --output out/
 ```
 
-Gera `out/consumo_fatura.parquet` (8.760 linhas), `out/resumo_mensal.parquet` (12 meses)
-e `out/cadastro_cargas.parquet`. O catálogo vem de `fems.data.catalog_seed` e o clima de
-`fems.data` (base canônica 2025) — não precisa de banco.
+Gera `out/consumo_fatura.parquet` (8.760 linhas), `out/resumo_mensal.parquet` (12 meses),
+`out/cadastro_cargas.parquet` e `out/ranking_equipamentos.parquet`. O catálogo vem de
+`fems.data.catalog_seed` e o clima de `fems.data` (base canônica 2025) — não precisa de banco.
+Se o `--config` tiver um bloco `overrides`, o dataset já reflete o cadastro personalizado.
 
 > A base climática e o `catalog_seed.py` são gerados de `modelo_gestao_energia_fazenda_v8.xlsx`
 > por `scripts/_extract_from_xlsx.py` (dev-only, requer openpyxl). O runtime não lê o .xlsx.
+
+## Apresentação visual (3 cenários)
+
+```powershell
+uv run python scripts/gerar_cenarios.py --output out/cenarios
+uv run python scripts/gerar_visuais.py --data out/cenarios/dashboard_data.json --output out/cenarios
+```
+
+`gerar_cenarios.py` roda Pequena/Média/Grande e agrega `dashboard_data.json` (totais, resumo
+mensal, perfil médio 24h e ranking por área). `gerar_visuais.py` gera as figuras PNG em
+`out/cenarios/figuras/` (matplotlib) para o artigo. O painel HTML interativo é montado a partir
+do `dashboard_data.json`.
 
 ## Comandos úteis
 
@@ -84,6 +105,8 @@ e `out/cadastro_cargas.parquet`. O catálogo vem de `fems.data.catalog_seed` e o
 | `uv run alembic upgrade head` | Aplica migrações |
 | `uv run python scripts/seed_catalog.py` | Popula o catálogo baseline no banco |
 | `uv run python scripts/gerar_dataset.py --config <f.json> --output out/` | Gera o dataset (Parquet) |
+| `uv run python scripts/gerar_cenarios.py --output out/cenarios` | Roda os 3 cenários + `dashboard_data.json` |
+| `uv run python scripts/gerar_visuais.py --data <json> --output out/cenarios` | Gera as figuras PNG |
 | `uv run python scripts/_extract_from_xlsx.py` | (dev) Regenera clima + `catalog_seed.py` do .xlsx |
 | `docker compose up -d` | Sobe Postgres |
 | `docker compose down` | Para Postgres (preserva volume) |
@@ -126,5 +149,5 @@ janeiro da planilha v8 (geração/bateria batem exato; consumo dentro de ±3% do
 Entregues os dois objetivos: **banco** que guarda o estado da fazenda e **script**
 que gera o dataset. Próximos passos: snapshots materializados e ingestão IoT (Fases 4–5).
 
-> **Lockfile:** `pyarrow` (runtime) e `openpyxl` (dev) foram adicionados ao `pyproject.toml`.
-> Rode `uv sync` (ou `uv lock`) para atualizar o `uv.lock`.
+> **Lockfile:** `pyarrow` (runtime) + `openpyxl`/`matplotlib` (dev) foram adicionados ao
+> `pyproject.toml`. Rode `uv sync` (ou `uv lock`) para atualizar o `uv.lock`.
