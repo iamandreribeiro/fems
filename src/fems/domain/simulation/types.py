@@ -7,7 +7,7 @@ estes tipos na fronteira do service (ver `fems.services.fazenda_service`).
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from fems.domain.configuration.enums import (
@@ -165,6 +165,32 @@ class ResumoMes:
 
 
 @dataclass(frozen=True, slots=True)
+class CargaHora:
+    """Consumo horário de uma carga (aba `Cargas` da planilha; formato longo)."""
+
+    id_fazenda: str
+    data_hora: datetime
+    mes: int
+    hora: int
+    carga: str
+    tipo: TipoCarga
+    consumo_kwh: float
+
+
+@dataclass(frozen=True, slots=True)
+class GeracaoHora:
+    """Energia horária de um gerador (aba `Geracao` da planilha; formato longo)."""
+
+    id_fazenda: str
+    data_hora: datetime
+    mes: int
+    hora: int
+    gerador_id: str
+    tipo: TipoGeracao
+    energia_kwh: float
+
+
+@dataclass(frozen=True, slots=True)
 class RankingItem:
     """Footprint energético anual de um equipamento (para o ranking por área)."""
 
@@ -178,10 +204,17 @@ class RankingItem:
 
 @dataclass(frozen=True, slots=True)
 class SimResult:
-    """Resultado completo de uma simulação."""
+    """Resultado completo de uma simulação.
+
+    `cargas_horarias`/`geracao_horaria` só são preenchidas quando o motor roda em modo
+    detalhado (`detalhado=True`); caso contrário ficam vazias (a API não precisa delas).
+    """
 
     fazenda_id: str
     cargas: list[CargaInstanciada]
     fatura: list[FaturaHora]
     resumo: list[ResumoMes]
     ranking: dict[Area, list[RankingItem]]
+    equipamentos: list[EquipamentoResolvido] = field(default_factory=list)
+    cargas_horarias: list[CargaHora] = field(default_factory=list)
+    geracao_horaria: list[GeracaoHora] = field(default_factory=list)

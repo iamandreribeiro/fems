@@ -19,10 +19,12 @@ from fems.domain.simulation.custo import linha_fatura
 from fems.domain.simulation.geracao import gerar_hora
 from fems.domain.simulation.resumo import resumo_mensal
 from fems.domain.simulation.types import (
+    CargaHora,
     ClimaHora,
     Equipamento,
     FaturaHora,
     FazendaSpec,
+    GeracaoHora,
     Gerador,
     OverrideSpec,
     SimResult,
@@ -31,19 +33,35 @@ from fems.domain.simulation.types import (
 
 
 def _serie_geracao(
-    fazenda: FazendaSpec, geradores: Mapping[str, Gerador], clima: Sequence[ClimaHora]
-) -> list[float]:
-    solar = geradores.get(fazenda.id_solar) if fazenda.id_solar else None
-    eolica = geradores.get(fazenda.id_eolica) if fazenda.id_eolica else None
-    serie: list[float] = []
-    for c in clima:
-        total = 0.0
-        if solar is not None:
-            total += gerar_hora(c, solar)
-        if eolica is not None:
-            total += gerar_hora(c, eolica)
-        serie.append(total)
-    return serie
+    fazenda: FazendaSpec,
+    geradores: Mapping[str, Gerador],
+    clima: Sequence[ClimaHora],
+    detalhado: bool,
+) -> tuple[list[float], list[GeracaoHora]]:
+    ativos = [
+        geradores[gid]
+        for gid in (fazenda.id_solar, fazenda.id_eolica)
+        if gid is not None and gid in geradores
+    ]
+    total = [0.0] * len(clima)
+    detalhe: list[GeracaoHora] = []
+    for g in ativos:
+        for i, c in enumerate(clima):
+            energia = gerar_hora(c, g)
+            total[i] += energia
+            if detalhado:
+                detalhe.append(
+                    GeracaoHora(
+                        id_fazenda=fazenda.id,
+                        data_hora=c.data_hora,
+                        mes=c.mes,
+                        hora=c.hora,
+                        gerador_id=g.id,
+                        tipo=g.tipo,
+                        energia_kwh=energia,
+                    )
+                )
+    return total, detalhe
 
 
 def simular_fazenda(
@@ -53,6 +71,7 @@ def simular_fazenda(
     tarifa: Sequence[TarifaHora],
     clima: Sequence[ClimaHora],
     overrides: Sequence[OverrideSpec] = (),
+    detalhado: bool = False,
 ) -> SimResult:
     n = len(clima)
 
@@ -63,15 +82,29 @@ def simular_fazenda(
     perfis = perfis_por_carga(resolvidos)
     cargas = cargas_from_perfis(fazenda, perfis)
 
-    # 2. Geração horária.
-    geracao = _serie_geracao(fazenda, geradores, clima)
+    # 2. Geração horária (total + detalhe por gerador se detalhado).
+    geracao, geracao_horaria = _serie_geracao(fazenda, geradores, clima, detalhado)
 
     # 3. Consumo horário total (soma das cargas não-armazenamento).
     consumo_total = [0.0] * n
+    cargas_horarias: list[CargaHora] = []
     for idx, ((_load, perfil), carga) in enumerate(zip(perfis, cargas, strict=False)):
         serie = consumo_serie(carga, idx, perfil, clima, fazenda.seed, fazenda.ano)
         for i in range(n):
             consumo_total[i] += serie[i]
+            if detalhado:
+                c = clima[i]
+                cargas_horarias.append(
+                    CargaHora(
+                        id_fazenda=fazenda.id,
+                        data_hora=c.data_hora,
+                        mes=c.mes,
+                        hora=c.hora,
+                        carga=carga.carga,
+                        tipo=carga.tipo,
+                        consumo_kwh=serie[i],
+                    )
+                )
 
     # 4. Bateria: descarrega Cons_Min cheio por hora de ponta.
     bateria = next((c for c in cargas if c.tipo == TipoCarga.ARMAZENAMENTO), None)
@@ -93,5 +126,12 @@ def simular_fazenda(
     ranking = ranking_por_area(resolvidos, tarifa, dias)
 
     return SimResult(
-        fazenda_id=fazenda.id, cargas=cargas, fatura=fatura, resumo=resumo, ranking=ranking
+        fazenda_id=fazenda.id,
+        cargas=cargas,
+        fatura=fatura,
+        resumo=resumo,
+        ranking=ranking,
+        equipamentos=list(resolvidos),
+        cargas_horarias=cargas_horarias,
+        geracao_horaria=geracao_horaria,
     )
