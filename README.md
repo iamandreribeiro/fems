@@ -61,10 +61,23 @@ catálogo pelo porte). Exemplo em [`tests/fixtures/faz_custom.json`](tests/fixtu
 **Portes:** `Pequena`, `Média`, `Grande`. A Grande usa `qtd_grande` no catálogo e os
 geradores `SOL-GRD`/`EOL-GRD` (valores propostos, ajustáveis em `scripts/_extract_from_xlsx.py`).
 
-## Gerar um dataset (CLI, sem banco)
+## Gerar um dataset (CLI)
 
-O mesmo motor de simulação da API, via linha de comando, lendo um JSON de cadastro
-(igual ao payload de `POST /fazendas`) e gravando o dataset em Parquet:
+> **Fluxo recomendado (criar na UI → gerar por id):** ver
+> [`docs/fluxo-de-uso.md`](docs/fluxo-de-uso.md) para o passo a passo ponta-a-ponta.
+
+O mesmo motor de simulação da API, via linha de comando, gravando o dataset em Parquet.
+Duas fontes de fazenda, mutuamente exclusivas:
+
+**a) `--fazenda-id` — de uma fazenda já cadastrada no banco (via UI/Swagger).** Puxa
+cadastro + overrides + catálogo do Postgres; não precisa de arquivo nenhum:
+
+```powershell
+uv run python scripts/gerar_dataset.py --fazenda-id FAZ-004 --output out/faz_004 --completo
+```
+
+**b) `--config` — de um JSON avulso** (igual ao payload de `POST /fazendas`), sem
+precisar persistir a fazenda:
 
 ```powershell
 uv run python scripts/gerar_dataset.py --config tests/fixtures/faz_001.json --output out/
@@ -119,7 +132,8 @@ do `dashboard_data.json`.
 | `uv run alembic revision --autogenerate -m "msg"` | Gera nova migração |
 | `uv run alembic upgrade head` | Aplica migrações |
 | `uv run python scripts/seed_catalog.py` | Popula o catálogo baseline no banco |
-| `uv run python scripts/gerar_dataset.py --config <f.json> --output out/` | Gera o dataset (Parquet) |
+| `uv run python scripts/gerar_dataset.py --fazenda-id <ID> --output out/<pasta> --completo` | Gera o dataset (Parquet) de uma fazenda do banco |
+| `uv run python scripts/gerar_dataset.py --config <f.json> --output out/` | Gera o dataset (Parquet) a partir de um JSON avulso |
 | `uv run python scripts/gerar_cenarios.py --output out/cenarios` | Roda os 3 cenários + `dashboard_data.json` |
 | `uv run python scripts/gerar_visuais.py --data <json> --output out/cenarios` | Gera as figuras PNG |
 | `uv run python scripts/_extract_from_xlsx.py` | (dev) Regenera clima + `catalog_seed.py` do .xlsx |
