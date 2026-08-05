@@ -28,7 +28,9 @@ class OverrideEquipamentoBase(BaseModel):
 
 
 class OverrideEquipamentoCreate(OverrideEquipamentoBase):
-    pass
+    # Exemplo mínimo no /docs: só o que muda. Campos omitidos usam o padrão do catálogo
+    # (NÃO envie qtd=0 / perfil todo-zero achando que é "padrão" — zero é um valor real).
+    model_config = ConfigDict(json_schema_extra={"example": {"equipamento_id": "ESC-04", "qtd": 3}})
 
 
 class OverrideEquipamento(OverrideEquipamentoBase):

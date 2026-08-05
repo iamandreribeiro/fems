@@ -127,3 +127,40 @@ async def test_ranking_endpoint_por_area(client: AsyncClient) -> None:
     por_area = r.json()["por_area"]
     assert {"escritorio", "cozinha", "quarto", "irrigacao"} <= set(por_area)
     assert por_area["escritorio"][0]["equipamento_id"] == "ESC-04"
+
+
+async def test_override_omitindo_perfil_usa_catalogo(client: AsyncClient) -> None:
+    # Override só com qtd (sem perfil_horario) → perfil vem do catálogo; consumo > 0.
+    payload = {
+        **PAYLOAD,
+        "id": "FAZ-OV",
+        "overrides": [{"equipamento_id": "COZ-03", "qtd": 2}],
+    }
+    r = await client.post("/v1/fazendas", json=payload)
+    assert r.status_code == 201, r.text
+    resumo = (await client.get("/v1/fazendas/FAZ-OV/resumo")).json()
+    assert sum(m["consumo_kwh"] for m in resumo) > 0  # não zerou o consumo
+
+
+async def test_id_duplicado_409(client: AsyncClient) -> None:
+    assert (await client.post("/v1/fazendas", json=PAYLOAD)).status_code == 201
+    r = await client.post("/v1/fazendas", json=PAYLOAD)
+    assert r.status_code == 409
+    assert "já existe" in r.json()["detail"]
+
+
+async def test_porte_grande_cria(client: AsyncClient) -> None:
+    grande = {**PAYLOAD, "id": "FAZ-GRD", "tipo": "Grande", "id_solar": "SOL-GRD", "id_eolica": "EOL-GRD"}
+    r = await client.post("/v1/fazendas", json=grande)
+    assert r.status_code == 201, r.text
+
+
+async def test_override_id_desconhecido_422(client: AsyncClient) -> None:
+    payload = {
+        **PAYLOAD,
+        "id": "FAZ-BAD",
+        "overrides": [{"equipamento_id": "NAO-EXISTE", "qtd": 1}],
+    }
+    r = await client.post("/v1/fazendas", json=payload)
+    assert r.status_code == 422
+    assert "catálogo" in r.json()["detail"]

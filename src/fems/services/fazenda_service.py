@@ -46,6 +46,14 @@ class CatalogoIncompletoError(RuntimeError):
     """Catálogo (equipamentos/geração/tarifa) ausente — rode o seed antes."""
 
 
+class OverrideInvalidoError(ValueError):
+    """Um override referencia um equipamento_id que não existe no catálogo."""
+
+
+class FazendaJaExisteError(ValueError):
+    """Já existe uma fazenda com o id informado."""
+
+
 class FazendaService:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
@@ -70,7 +78,18 @@ class FazendaService:
         return [tarifa_hora_from_orm(h) for h in orm.horas]
 
     async def create(self, data: FazendaCreate) -> FazendaRead:
+        if await self.repo.get_by_id(data.id) is not None:
+            raise FazendaJaExisteError(f"fazenda '{data.id}' já existe")
         equipamentos = await self._equipamentos()
+        ids_catalogo = {e.id for e in equipamentos}
+        desconhecidos = [
+            o.equipamento_id for o in data.overrides if o.equipamento_id not in ids_catalogo
+        ]
+        if desconhecidos:
+            raise OverrideInvalidoError(
+                "override referencia equipamento(s) fora do catálogo: "
+                + ", ".join(sorted(set(desconhecidos)))
+            )
         orm = FazendaORM(**data.model_dump(exclude={"overrides"}))
         spec = fazenda_spec_from_orm(orm)
         override_specs = [override_spec_from_create(o) for o in data.overrides]

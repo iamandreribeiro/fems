@@ -8,7 +8,12 @@ from fems.domain.instance.resultado import (
     RankingOut,
     ResumoMesOut,
 )
-from fems.services.fazenda_service import CatalogoIncompletoError, FazendaService
+from fems.services.fazenda_service import (
+    CatalogoIncompletoError,
+    FazendaJaExisteError,
+    FazendaService,
+    OverrideInvalidoError,
+)
 
 router = APIRouter(prefix="/fazendas", tags=["fazendas"])
 
@@ -17,6 +22,10 @@ router = APIRouter(prefix="/fazendas", tags=["fazendas"])
 async def create_fazenda(data: FazendaCreate, session: SessionDep) -> FazendaRead:
     try:
         return await FazendaService(session).create(data)
+    except OverrideInvalidoError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    except FazendaJaExisteError as exc:
+        raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
     except CatalogoIncompletoError as exc:
         raise HTTPException(status.HTTP_409_CONFLICT, str(exc)) from exc
 
