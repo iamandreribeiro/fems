@@ -1,19 +1,20 @@
-"""Gera o DATASET de uma fazenda (8.760 h) a partir de um arquivo de config.
+"""Gera o DATASET de uma fazenda (8.760 h) a partir do banco OU de um arquivo de config.
 
-Reusa o MESMO motor da API (`simular_fazenda`). Catálogo vem do módulo
-`fems.data.catalog_seed` (não precisa de banco); clima da base empacotada.
-Saída: Parquet (consumo_fatura + resumo_mensal). Opcional `--persist` grava o
-cadastro + cargas no banco via FazendaService.
+Reusa o MESMO motor da API (`simular_fazenda`). Clima vem da base empacotada.
+Saída: Parquet (consumo_fatura + resumo_mensal + cadastro_cargas + ranking); com
+`--completo`, também equipamentos/consumo/geração.
 
-Config JSON = exatamente o payload de `POST /fazendas`, ex.:
-  {"id": "FAZ-001", "nome": "Fazenda Boa Vista", "tamanho_ha": 80, "tipo": "Pequena",
-   "tem_escritorio": true, "tem_cozinha": true, "tem_quarto": true, "tem_irrigacao": true,
-   "id_solar": "SOL-PEQ", "id_eolica": "EOL-PEQ", "id_bateria": "BAT-001",
-   "tarifa": "AZUL_HOROSSAZONAL", "seed": 20250101, "ano": 2025}
+Duas fontes de fazenda (mutuamente exclusivas):
+  --fazenda-id FAZ-001   usa uma fazenda JÁ CADASTRADA no banco (via UI/Swagger),
+                         com cadastro, overrides e catálogo do Postgres. Zero JSON.
+  --config faz.json      lê os parâmetros de um JSON (= payload de `POST /fazendas`);
+                         catálogo do módulo empacotado, ou do banco com `--from-db`.
 
 Run:
+  # da fazenda que você criou na UI (recomendado):
+  uv run python scripts/gerar_dataset.py --fazenda-id FAZ-004 --output out/faz_004 --completo
+  # de um JSON avulso:
   uv run python scripts/gerar_dataset.py --config faz.json --output out/
-  (ou: .venv/Scripts/python scripts/gerar_dataset.py --config faz.json --output out/)
 """
 
 from __future__ import annotations
@@ -77,6 +78,45 @@ def _overrides_from_config(cfg: dict[str, object]) -> list[OverrideSpec]:
             )
         )
     return specs
+
+
+async def _fazenda_e_catalogo_do_banco(
+    fazenda_id: str, ano_cli: int | None
+) -> tuple[FazendaSpec, list[OverrideSpec], Catalogo]:
+    """Carrega a fazenda persistida (cadastro + overrides) e o catálogo, tudo do Postgres.
+
+    É o caminho "criei na UI, quero o dataset": não exige nenhum arquivo de config.
+    """
+    from fems.core.database import SessionLocal
+    from fems.repositories.equipamento_repository import EquipamentoRepository
+    from fems.repositories.fazenda_repository import FazendaRepository
+    from fems.repositories.geracao_repository import ConfiguracaoGeracaoRepository
+    from fems.repositories.tarifa_repository import TarifaRepository
+    from fems.services.sim_mapping import (
+        equipamento_from_orm,
+        fazenda_spec_from_orm,
+        gerador_from_orm,
+        override_spec_from_orm,
+        tarifa_hora_from_orm,
+    )
+
+    async with SessionLocal() as s:
+        orm = await FazendaRepository(s).get_by_id(fazenda_id)
+        if orm is None:
+            raise SystemExit(f"erro: fazenda '{fazenda_id}' não encontrada no banco")
+        spec = fazenda_spec_from_orm(orm)
+        overrides = [override_spec_from_orm(o) for o in orm.overrides]  # selectin: já carregado
+        equipamentos = [equipamento_from_orm(o) for o in await EquipamentoRepository(s).list()]
+        geradores = [gerador_from_orm(o) for o in await ConfiguracaoGeracaoRepository(s).list()]
+        tar_orm = await TarifaRepository(s).get_by_nome(spec.tarifa)
+    if not equipamentos:
+        raise SystemExit("erro: catálogo vazio no banco — rode scripts/seed_catalog.py")
+    if tar_orm is None:
+        raise SystemExit(f"erro: tarifa '{spec.tarifa}' não cadastrada no banco")
+    tarifa = [tarifa_hora_from_orm(h) for h in tar_orm.horas]
+    if ano_cli is not None:
+        spec = dataclasses.replace(spec, ano=ano_cli)
+    return spec, overrides, (equipamentos, geradores, tarifa)
 
 
 async def _catalogo_do_banco(tarifa_nome: str) -> Catalogo:
@@ -154,7 +194,14 @@ def _escrever_base_completa(result: SimResult, output: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Gera o dataset energético de uma fazenda.")
-    parser.add_argument("--config", required=True, type=Path, help="JSON de cadastro da fazenda")
+    fonte_arg = parser.add_mutually_exclusive_group(required=True)
+    fonte_arg.add_argument(
+        "--fazenda-id",
+        help="fazenda já cadastrada no banco: usa cadastro + overrides + catálogo do Postgres",
+    )
+    fonte_arg.add_argument(
+        "--config", type=Path, help="JSON de cadastro (payload de POST /fazendas)"
+    )
     parser.add_argument("--output", required=True, type=Path, help="diretório de saída")
     parser.add_argument("--year", type=int, default=None, help="ano da série (sobrepõe o config)")
     parser.add_argument(
@@ -169,16 +216,25 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    cfg = json.loads(args.config.read_text(encoding="utf-8"))
-    spec = _spec_from_config(cfg, args.year)
-    overrides = _overrides_from_config(cfg)
-
-    if args.from_db:
-        equipamentos, geradores_lst, tarifa = asyncio.run(_catalogo_do_banco(spec.tarifa))
-        fonte = "banco"
+    if args.fazenda_id:
+        spec, overrides, (equipamentos, geradores_lst, tarifa) = asyncio.run(
+            _fazenda_e_catalogo_do_banco(args.fazenda_id, args.year)
+        )
+        fonte = f"banco (fazenda {args.fazenda_id})"
     else:
-        equipamentos, geradores_lst, tarifa = list(EQUIPAMENTOS), list(GERADORES), list(TARIFA_AZUL)
-        fonte = "módulo (catalog_seed)"
+        cfg = json.loads(args.config.read_text(encoding="utf-8"))
+        spec = _spec_from_config(cfg, args.year)
+        overrides = _overrides_from_config(cfg)
+        if args.from_db:
+            equipamentos, geradores_lst, tarifa = asyncio.run(_catalogo_do_banco(spec.tarifa))
+            fonte = "banco"
+        else:
+            equipamentos, geradores_lst, tarifa = (
+                list(EQUIPAMENTOS),
+                list(GERADORES),
+                list(TARIFA_AZUL),
+            )
+            fonte = "módulo (catalog_seed)"
 
     _validar_overrides(overrides, equipamentos)
     geradores = {g.id: g for g in geradores_lst}
