@@ -75,6 +75,21 @@ Gera `out/consumo_fatura.parquet` (8.760 linhas), `out/resumo_mensal.parquet` (1
 `fems.data.catalog_seed` e o clima de `fems.data` (base canônica 2025) — não precisa de banco.
 Se o `--config` tiver um bloco `overrides`, o dataset já reflete o cadastro personalizado.
 
+Com `--completo`, também grava a **base completa** (espelha as abas da planilha): `equipamentos.parquet`
+(cadastro + potência/qtd), `consumo.parquet` (por carga × hora, aba Cargas) e `geracao.parquet`
+(por gerador × hora, aba Geração):
+
+```powershell
+uv run python scripts/gerar_dataset.py --config tests/fixtures/faz_custom.json --output out/ --completo
+```
+
+Por padrão a CLI usa o catálogo do módulo `fems.data.catalog_seed` (offline). Com **`--from-db`**
+ela carrega o catálogo do Postgres (reflete edições feitas via API/`POST /v1/equipamentos`):
+
+```powershell
+uv run python scripts/gerar_dataset.py --config faz.json --output out/ --completo --from-db
+```
+
 > A base climática e o `catalog_seed.py` são gerados de `modelo_gestao_energia_fazenda_v8.xlsx`
 > por `scripts/_extract_from_xlsx.py` (dev-only, requer openpyxl). O runtime não lê o .xlsx.
 
