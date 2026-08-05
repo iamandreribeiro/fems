@@ -44,3 +44,6 @@ Desktop.ini
 
 # Logs
 *.log
+
+# Datasets/artefatos gerados pela CLI e pelos scripts de cenários/visuais
+out/
