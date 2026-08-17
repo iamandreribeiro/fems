@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Response, status
 
 from fems.api.deps import SessionDep
 from fems.domain.instance.fazenda import FazendaCreate, FazendaRead
@@ -57,6 +57,19 @@ async def resumo_fazenda(id_: str, session: SessionDep) -> list[ResumoMesOut]:
     if resumo is None:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Fazenda not found")
     return [ResumoMesOut.model_validate(r) for r in resumo]
+
+
+@router.get("/{id_}/dataset")
+async def baixar_dataset(id_: str, session: SessionDep) -> Response:
+    """Baixa o dataset da fazenda: a série horária anual em Parquet (consumo_fatura)."""
+    dados = await FazendaService(session).dataset_fatura_parquet(id_)
+    if dados is None:
+        raise HTTPException(status.HTTP_404_NOT_FOUND, "Fazenda not found")
+    return Response(
+        content=dados,
+        media_type="application/vnd.apache.parquet",
+        headers={"Content-Disposition": f'attachment; filename="{id_}_consumo_fatura.parquet"'},
+    )
 
 
 @router.get("/{id_}/ranking-equipamentos", response_model=RankingOut)

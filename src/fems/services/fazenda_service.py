@@ -30,6 +30,7 @@ from fems.repositories.fazenda_repository import FazendaRepository
 from fems.repositories.geracao_repository import ConfiguracaoGeracaoRepository
 from fems.repositories.models import FazendaORM
 from fems.repositories.tarifa_repository import TarifaRepository
+from fems.services.dataset_export import fatura_parquet_bytes
 from fems.services.sim_mapping import (
     carga_orm_from_instanciada,
     equipamento_from_orm,
@@ -129,6 +130,11 @@ class FazendaService:
     async def resumo(self, id_: str) -> list[ResumoMes] | None:
         out = await self._simular(id_)
         return out[1] if out else None
+
+    async def dataset_fatura_parquet(self, id_: str) -> bytes | None:
+        """Série horária da fazenda como Parquet (para download). None se não existe."""
+        fatura = await self.simulacao(id_)
+        return None if fatura is None else fatura_parquet_bytes(fatura)
 
     async def ranking(self, id_: str) -> dict[Area, list[RankingItem]] | None:
         orm = await self.repo.get_by_id(id_)

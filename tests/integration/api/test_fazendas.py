@@ -150,7 +150,13 @@ async def test_id_duplicado_409(client: AsyncClient) -> None:
 
 
 async def test_porte_grande_cria(client: AsyncClient) -> None:
-    grande = {**PAYLOAD, "id": "FAZ-GRD", "tipo": "Grande", "id_solar": "SOL-GRD", "id_eolica": "EOL-GRD"}
+    grande = {
+        **PAYLOAD,
+        "id": "FAZ-GRD",
+        "tipo": "Grande",
+        "id_solar": "SOL-GRD",
+        "id_eolica": "EOL-GRD",
+    }
     r = await client.post("/v1/fazendas", json=grande)
     assert r.status_code == 201, r.text
 

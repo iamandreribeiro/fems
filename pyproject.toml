@@ -70,6 +70,16 @@ module = ["tests.*"]
 disallow_untyped_defs = false
 disallow_untyped_calls = false
 
+# pandas/pyarrow: I/O binário (Parquet); relaxa o strict só neste glue de export.
+[[tool.mypy.overrides]]
+module = ["fems.services.dataset_export"]
+disallow_untyped_calls = false
+warn_return_any = false
+
+[[tool.mypy.overrides]]
+module = ["pandas.*", "pyarrow.*"]
+ignore_missing_imports = true
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests"]
