@@ -10,7 +10,7 @@ from decimal import Decimal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from fems.domain.configuration.enums import Area
+from fems.domain.configuration.enums import AREA_PREFIXO, Area
 
 HOURS_IN_DAY = 24
 
@@ -21,6 +21,22 @@ def validate_perfil(values: list[float]) -> list[float]:
     if not all(0.0 <= x <= 1.0 for x in values):
         raise ValueError("todos os fatores horários devem estar em [0.0, 1.0]")
     return values
+
+
+def gerar_id_equipamento(area: Area, ids_existentes: list[str]) -> str:
+    """Gera o próximo id no formato `PREFIX-NN` para a área (ESC-01, COZ-02, ...).
+
+    Considera só o sufixo numérico dos ids já usados com o mesmo prefixo (ignora
+    sufixos não-inteiros, ex.: um `ESC-string` legado) e incrementa o maior.
+    """
+    prefixo = AREA_PREFIXO[area]
+    marca = f"{prefixo}-"
+    numeros = [
+        int(id_[len(marca) :])
+        for id_ in ids_existentes
+        if id_.startswith(marca) and id_[len(marca) :].isdigit()
+    ]
+    return f"{prefixo}-{max(numeros, default=0) + 1:02d}"
 
 
 class EquipamentoBase(BaseModel):
@@ -40,7 +56,8 @@ class EquipamentoBase(BaseModel):
 
 
 class EquipamentoCreate(EquipamentoBase):
-    pass
+    # id opcional: quando omitido, o service gera no formato PREFIX-NN pela área.
+    id: str | None = Field(default=None, max_length=20)  # type: ignore[assignment]
 
 
 class EquipamentoUpdate(BaseModel):

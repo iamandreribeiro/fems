@@ -19,6 +19,12 @@ class EquipamentoRepository:
     async def get_by_id(self, id_: str) -> EquipamentoORM | None:
         return await self.session.get(EquipamentoORM, id_)
 
+    # Definido ANTES de `list` de propósito: o método `list` sombrearia o builtin
+    # `list` nas anotações seguintes (list[str]) e quebraria a checagem de tipos.
+    async def ids(self) -> list[str]:
+        result = await self.session.execute(select(EquipamentoORM.id))
+        return list(result.scalars().all())
+
     async def list(self) -> list[EquipamentoORM]:
         result = await self.session.execute(select(EquipamentoORM).order_by(EquipamentoORM.id))
         return list(result.scalars().all())

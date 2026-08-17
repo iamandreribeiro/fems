@@ -4,6 +4,7 @@ from fems.domain.configuration.equipamento import (
     Equipamento,
     EquipamentoCreate,
     EquipamentoUpdate,
+    gerar_id_equipamento,
 )
 from fems.repositories.equipamento_repository import EquipamentoRepository
 
@@ -13,6 +14,9 @@ class EquipamentoService:
         self.repo = EquipamentoRepository(session)
 
     async def create(self, data: EquipamentoCreate) -> Equipamento:
+        if data.id is None:
+            novo_id = gerar_id_equipamento(data.area, await self.repo.ids())
+            data = data.model_copy(update={"id": novo_id})
         orm = await self.repo.create(data)
         return Equipamento.model_validate(orm)
 

@@ -10,6 +10,16 @@ class Area(StrEnum):
     IRRIGACAO = "irrigacao"
 
 
+# Prefixo convencional do id de equipamento por área (ESC-01, COZ-01, QUA-01, IRR-01).
+# Fonte de verdade única para a geração automática de id no cadastro.
+AREA_PREFIXO: dict[Area, str] = {
+    Area.ESCRITORIO: "ESC",
+    Area.COZINHA: "COZ",
+    Area.QUARTO: "QUA",
+    Area.IRRIGACAO: "IRR",
+}
+
+
 class TipoGeracao(StrEnum):
     """Tipos de geração suportados (Config_Geracao)."""
 
