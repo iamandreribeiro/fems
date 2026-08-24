@@ -34,7 +34,8 @@ copy .env.example .env
 # 5. Aplicar migrações (cria as tabelas de configuração + cadastro)
 uv run alembic upgrade head
 
-# 6. Popular o catálogo baseline (equipamentos, geração, tarifa) extraído da planilha v8
+# 6. Popular o catálogo baseline (equipamentos, geração, tarifa) e as fazendas
+#    de referência (FAZ-001 Boa Vista, FAZ-002 São Pedro) — idempotente
 uv run python scripts/seed_catalog.py
 
 # 7. Subir a API em modo dev
@@ -131,7 +132,7 @@ do `dashboard_data.json`.
 | `uv run mypy src/` | Type check estrito |
 | `uv run alembic revision --autogenerate -m "msg"` | Gera nova migração |
 | `uv run alembic upgrade head` | Aplica migrações |
-| `uv run python scripts/seed_catalog.py` | Popula o catálogo baseline no banco |
+| `uv run python scripts/seed_catalog.py` | Popula o catálogo baseline + fazendas de referência (idempotente) |
 | `uv run python scripts/gerar_dataset.py --fazenda-id <ID> --output out/<pasta> --completo` | Gera o dataset (Parquet) de uma fazenda do banco |
 | `uv run python scripts/gerar_dataset.py --config <f.json> --output out/` | Gera o dataset (Parquet) a partir de um JSON avulso |
 | `uv run python scripts/gerar_cenarios.py --output out/cenarios` | Roda os 3 cenários + `dashboard_data.json` |

@@ -12,12 +12,14 @@ from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from fems.data.catalog_seed import EQUIPAMENTOS, GERADORES, TARIFA_AZUL, TARIFA_AZUL_NOME
+from fems.data.fazendas_seed import FAZENDAS_REFERENCIA
 from fems.repositories.models import (
     ConfiguracaoGeracaoORM,
     EquipamentoORM,
     TarifaHoraORM,
     TarifaORM,
 )
+from fems.services.fazenda_service import FazendaService
 
 
 def _d(x: float) -> Decimal:
@@ -64,3 +66,19 @@ async def seed_catalogo(session: AsyncSession) -> None:
         TarifaHoraORM(hora=h.hora, preco_kwh=_d(h.preco_kwh), tipo=h.tipo) for h in TARIFA_AZUL
     ]
     session.add(tarifa)
+
+
+async def seed_fazendas(session: AsyncSession) -> int:
+    """Cria as fazendas de referência (Boa Vista / São Pedro), pulando as já existentes.
+
+    Idempotente. Requer o catálogo já semeado (usa o mesmo caminho do `POST /fazendas`,
+    que instancia as cargas). Retorna quantas foram criadas.
+    """
+    service = FazendaService(session)
+    criadas = 0
+    for f in FAZENDAS_REFERENCIA:
+        assert f.id is not None  # as de referência sempre têm id explícito
+        if await service.get_by_id(f.id) is None:
+            await service.create(f)
+            criadas += 1
+    return criadas
