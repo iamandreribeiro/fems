@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from fems.data.clima import carregar_clima
 from fems.domain.configuration.enums import Area
-from fems.domain.instance.fazenda import FazendaCreate, FazendaRead
+from fems.domain.instance.fazenda import FazendaCreate, FazendaRead, gerar_id_fazenda
 from fems.domain.instance.instanciar import instanciar_cargas
 from fems.domain.instance.ranking import ranking_por_area
 from fems.domain.instance.resolver import resolver_equipamentos
@@ -79,7 +79,9 @@ class FazendaService:
         return [tarifa_hora_from_orm(h) for h in orm.horas]
 
     async def create(self, data: FazendaCreate) -> FazendaRead:
-        if await self.repo.get_by_id(data.id) is not None:
+        if data.id is None:
+            data = data.model_copy(update={"id": gerar_id_fazenda(await self.repo.ids())})
+        elif await self.repo.get_by_id(data.id) is not None:
             raise FazendaJaExisteError(f"fazenda '{data.id}' já existe")
         equipamentos = await self._equipamentos()
         ids_catalogo = {e.id for e in equipamentos}

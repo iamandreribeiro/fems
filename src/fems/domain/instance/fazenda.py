@@ -33,7 +33,24 @@ class FazendaBase(BaseModel):
 
 
 class FazendaCreate(FazendaBase):
+    # id opcional: quando omitido, o service gera no formato FAZ-NNN.
+    id: str | None = Field(default=None, max_length=20)  # type: ignore[assignment]
     overrides: list[OverrideEquipamentoCreate] = Field(default_factory=list)
+
+
+def gerar_id_fazenda(ids_existentes: list[str]) -> str:
+    """Gera o próximo id de fazenda no formato `FAZ-NNN` (FAZ-001, FAZ-002, ...).
+
+    Considera só o sufixo numérico dos ids `FAZ-*` já usados (ignora sufixos
+    não-inteiros) e incrementa o maior. Mesmo método do id de equipamento.
+    """
+    marca = "FAZ-"
+    numeros = [
+        int(id_[len(marca) :])
+        for id_ in ids_existentes
+        if id_.startswith(marca) and id_[len(marca) :].isdigit()
+    ]
+    return f"FAZ-{max(numeros, default=0) + 1:03d}"
 
 
 class FazendaCargaRead(BaseModel):

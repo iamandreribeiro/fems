@@ -1,9 +1,10 @@
-"""Geração automática de id de equipamento (formato PREFIX-NN por área)."""
+"""Geração automática de id de equipamento (PREFIX-NN) e de fazenda (FAZ-NNN)."""
 
 from decimal import Decimal
 
 from fems.domain.configuration.enums import Area
 from fems.domain.configuration.equipamento import EquipamentoCreate, gerar_id_equipamento
+from fems.domain.instance.fazenda import FazendaCreate, gerar_id_fazenda
 
 
 def test_primeiro_id_por_area():
@@ -41,3 +42,15 @@ def test_create_aceita_id_omitido():
         perfil_horario=[1.0] * 24,
     )
     assert e.id is None
+
+
+def test_fazenda_id_formato_3_digitos():
+    assert gerar_id_fazenda([]) == "FAZ-001"
+    assert gerar_id_fazenda(["FAZ-001", "FAZ-002", "FAZ-004"]) == "FAZ-005"
+    # ids sujos não quebram
+    assert gerar_id_fazenda(["FAZ-001", "FAZ-abc", "outro"]) == "FAZ-002"
+
+
+def test_fazenda_create_aceita_id_omitido():
+    f = FazendaCreate(nome="Fazenda X", tamanho_ha=Decimal("80"), tipo="Pequena")
+    assert f.id is None

@@ -24,6 +24,12 @@ class FazendaRepository:
     async def get_by_id(self, id_: str) -> FazendaORM | None:
         return await self.session.get(FazendaORM, id_)
 
+    # Antes de `list` de propósito: o método `list` sombrearia o builtin `list`
+    # nas anotações seguintes (list[str]) e quebraria a checagem de tipos.
+    async def ids(self) -> list[str]:
+        result = await self.session.execute(select(FazendaORM.id))
+        return list(result.scalars().all())
+
     async def list(self) -> list[FazendaORM]:
         result = await self.session.execute(select(FazendaORM).order_by(FazendaORM.id))
         return list(result.scalars().all())
